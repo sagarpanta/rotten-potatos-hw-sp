@@ -9,7 +9,8 @@ class MoviesController < ApplicationController
 
   def index
  	#@sr = (params[:ratings].present? ? params[:ratings] : [])
-	
+	@all_ratings = Movie.ratings
+	redirect = true
 	
 	if params[:sort].present?
 		@selected_sort =  [params[:sort]]
@@ -22,7 +23,6 @@ class MoviesController < ApplicationController
 	end
 
 
-	
 	if params[:ratings].present?
 		@selected_ratings = params[:ratings].keys
 		session[:ratings] = @selected_ratings
@@ -47,9 +47,10 @@ class MoviesController < ApplicationController
 
 	@rating = params[:ratings]
 	
-	@all_ratings = Movie.ratings
 
 
+
+	
 
 
   end
@@ -59,16 +60,19 @@ class MoviesController < ApplicationController
   end
 
   def create
+	session[:visited_show_action] = 1
     @movie = Movie.create!(params[:movie])
     flash[:notice] = "#{@movie.title} was successfully created."
     redirect_to movies_path
   end
 
   def edit
+	session[:visited_show_action] = 1
     @movie = Movie.find params[:id]
   end
 
   def update
+	session[:visited_show_action] = 1
     @movie = Movie.find params[:id]
     @movie.update_attributes!(params[:movie])
     flash[:notice] = "#{@movie.title} was successfully updated."
