@@ -24,7 +24,7 @@ class MoviesController < ApplicationController
 
 	
 	if params[:ratings].present?
-		@selected_ratings = params[:ratings]
+		@selected_ratings = params[:ratings].keys
 		session[:ratings] = @selected_ratings
 	elsif !params[:ratings].present? and session[:visited_show_action] == 1
 		@selected_ratings = []
@@ -39,9 +39,10 @@ class MoviesController < ApplicationController
 		session[:ratings] = []
 		
 	end
-
-    @movies = Movie.where(@selected_ratings.present? ? {:rating => @selected_ratings} :   {}).order(@selected_sort)
 	
+	
+    @movies = Movie.where( {:rating => @selected_ratings}).order(@selected_sort)
+
 	@sort= @selected_sort.present? ? @selected_sort[0]: ''
 
 	@rating = params[:ratings]
