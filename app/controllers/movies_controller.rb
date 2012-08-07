@@ -1,3 +1,5 @@
+require 'Iconv'
+
 class MoviesController < ApplicationController
 
   def show
@@ -8,50 +10,55 @@ class MoviesController < ApplicationController
   end
 
   def index
- 	#@sr = (params[:ratings].present? ? params[:ratings] : [])
-	@all_ratings = Movie.ratings
-	redirect = true
-	
-	if params[:sort].present?
-		@selected_sort =  [params[:sort]]
-		session[:sort] = @selected_sort
-		session[:sort_action] =1
-	else
-		@selected_sort = nil
-		@selected_sort = session[:sort]
-		session[:sort_action]  = 0
-	end
 
+ 
+ 
+   	#@sr = (params[:ratings].present? ? params[:ratings] : [])
+	@all_ratings = Movie.ratings
+	redirect = false
+	
 
 	if params[:ratings].present?
 		@selected_ratings = params[:ratings].keys
 		session[:ratings] = @selected_ratings
-	elsif !params[:ratings].present? and session[:visited_show_action] == 1
-		@selected_ratings = []
-		@selected_ratings = session[:ratings]
-		session[:visited_show_action] = 0
-	elsif !params[:ratings].present? and session[:visited_show_action] != 1 and session[:sort_action] == 1
-		@selected_ratings = session[:ratings]
-		session[:sort_action] = 0
-		
-	elsif !params[:ratings].present? and session[:visited_show_action] != 1 and session[:sort_action] !=1
-		@selected_ratings = []
-		session[:ratings] = []
-		
+		session[:currently_selected] = params[:ratings]
+	else
+		@selected_ratings = nil
+		if  session[:ratings] != nil && params[:commit] == nil
+			redirect = true
+		else
+			session[:ratings] = nil
+			session[:currently_selected] = nil
+		end
 	end
 	
+	if ['title' , 'release_date'].include? params[:sort]
+		@movies = Movie.where({:rating=>session[:ratings]}).order(params[:sort])
+		@sort_by = params[:sort]
+		session[:sort] = @sort_by
+	else 
+		#watch for this line
+		@movies = Movie.where({:rating => @selected_ratings})
+		@sort_by = nil
+		unless session[:sort].nil?
+			@sort_by = session[:sort]
+			redirect = true
+		end
+	end
 	
-    @movies = Movie.where( {:rating => @selected_ratings}).order(@selected_sort)
 
-	@sort= @selected_sort.present? ? @selected_sort[0]: ''
 
-	@rating = params[:ratings]
+	#session[:ratings] = nil
+	#session[:sort] = nil
+	#session[:currently_selected] = nil
+	@sort= @sort_by.present? ? @sort_by: nil
+
+	@rating = params[:ratings].nil? ? [] : params[:ratings]
 	
-
-
-
 	
-
+	if redirect
+		redirect_to movies_path({:ratings => session[:currently_selected],:sort=>@sort_by})
+	end
 
   end
 
